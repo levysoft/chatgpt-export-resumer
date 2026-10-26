@@ -405,9 +405,11 @@ def looks_like_html(path: Path) -> bool:
 		return False
 
 	with path.open("rb") as file:
-		chunk = file.read(2048).lower()
+		chunk = file.read(2048).lstrip().lower()
 
-	return b"<html" in chunk or b"<!doctype html" in chunk
+	# Check only the beginning: an uncompressed ZIP entry can contain HTML
+	# within its first 2 KiB without the archive itself being an HTML page.
+	return chunk.startswith(b"<html") or chunk.startswith(b"<!doctype html")
 
 
 def check_zip_with_python(path: Path, quiet: bool) -> bool:
