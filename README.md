@@ -1,8 +1,16 @@
 # ChatGPT Export Resumer
 
-A small Python tool to resume, validate and extract large ChatGPT export ZIP files when the browser download stops halfway and the ZIP appears corrupted.
+[English](README.md) | [Italiano](README.it.md)
 
-In italiano: un piccolo script Python per recuperare gli export ZIP di ChatGPT quando il download si interrompe, il file sembra uno ZIP valido all'inizio, ma `unzip` fallisce perché manca la parte finale dell'archivio.
+**Resume interrupted ChatGPT data export downloads and recover ZIP files that appear corrupted.**
+
+ChatGPT Export Resumer is a Python command-line tool that uses an authenticated request copied from Chrome, minimizes unnecessary cookies and downloads the ZIP through `curl`. If the export was downloaded only partially, it attempts to resume the transfer and validates the archive before extracting it. **No third-party Python packages are required.**
+
+Developed by **Antonio Troise (Levysoft)**. Once you have prepared `chrome-curl.txt` with Chrome DevTools, you can run:
+
+```bash
+./chatgpt_export_resumer.py chrome-curl.txt --extract
+```
 
 ## Why this exists
 
@@ -53,23 +61,26 @@ This script automates the recovery workflow:
 9. Generates a sanitized technical report.
 10. Optionally extracts the ZIP and opens `chat.html`.
 
+## Features
+
+- **Authenticated downloads**: reads the ChatGPT export URL and cookies from Chrome's **Copy as cURL** request.
+- **Cookie filtering**: discards unnecessary cookies such as `conv_key_*` and retains the ones generally needed for the request.
+- **Automatic resume**: continues incomplete downloads using `curl -C -`, without starting from zero when the server supports byte-range requests.
+- **ZIP validation**: tests the archive with `unzip` (or Python's `zipfile` fallback) and checks EOCD/ZIP64 signatures.
+- **Flexible output**: detailed or quiet execution, progress control, diagnostic reports, optional extraction and opening of `chat.html` on macOS.
+- **Cleanup**: removes temporary request and diagnostic files with `--cleanup`, also available as a standalone command.
+
+The tool does not bypass ChatGPT authentication. You must have a valid export link and an authenticated browser request, and recovery depends on server support for resuming the download.
+
 ## Official context
 
 OpenAI sends ChatGPT data exports by email. The download link expires after 24 hours and the downloaded file should be a ZIP archive containing chat history and other account data.
 
-Reference:
-
-```text
-https://help.openai.com/en/articles/7260999-how-do-i-export-my-chatgpt-history-and-data
-```
+Reference: [OpenAI Help, exporting ChatGPT data](https://help.openai.com/en/articles/7260999-how-do-i-export-my-chatgpt-history-and-data).
 
 OpenAI also warns that diagnostic files such as HAR files may contain personal or sensitive data. The same principle applies to Chrome "Copy as cURL" commands because they can include cookies, temporary signed URLs and session tokens.
 
-Reference:
-
-```text
-https://help.openai.com/en/articles/6614161-how-can-i-contact-support
-```
+Reference: [OpenAI Help, contacting support](https://help.openai.com/en/articles/6614161-how-can-i-contact-support).
 
 ## Requirements
 
@@ -158,10 +169,10 @@ Copy > Copy as cURL
 10. Save the copied command into a file:
 
 ```bash
-nano chrome-curl.txt
+vi chrome-curl.txt
 ```
 
-Paste the command, save and close.
+Press `i`, paste the command, then press `Esc` and type `:wq` to save and close.
 
 Important: do not publish `chrome-curl.txt`. It can contain cookies and session tokens.
 
@@ -405,6 +416,7 @@ It does not remove:
 ```text
 chatgpt_export_resumer.py
 README.md
+README.it.md
 chatgpt-export.zip
 chatgpt-export-estratto/
 ```
@@ -685,54 +697,22 @@ ChatGPT export links expire after 24 hours.
 
 Request a new export and repeat the workflow.
 
-## Suggested workflow
+## Download and source code
 
-```bash
-git clone https://github.com/levysoft/chatgpt-export-resumer.git
-cd chatgpt-export-resumer
+- [GitHub repository and issue tracker](https://github.com/levysoft/chatgpt-export-resumer)
+- [Python script](chatgpt_export_resumer.py)
+- [Italian documentation](README.it.md)
+- [Levysoft website](https://www.levysoft.it/)
 
-chmod +x chatgpt_export_resumer.py
+To use the tool, clone the repository as shown in **Installation**. No packaged release is required.
 
-# Save Chrome "Copy as cURL" into chrome-curl.txt
+## License and acknowledgments
 
-./chatgpt_export_resumer.py chrome-curl.txt --extract --open-html --quiet --cleanup
-```
+Released under the **MIT License**. See [LICENSE](LICENSE).
 
-## Cleanup only
+Author: **Antonio Troise (Levysoft)**  
+Project website: https://www.levysoft.it/  
+Author website: https://www.levysoft.it/  
+GitHub: https://github.com/levysoft/
 
-After a previous run, you can delete temporary and diagnostic files with:
-
-```bash
-./chatgpt_export_resumer.py --cleanup
-```
-
-This removes:
-
-- `chrome-curl.txt`
-- `cookies-minimi.txt`
-- `headers-*.txt`
-- `result-*.txt`
-- `unzip-extract-result.txt`
-- `report-export-chatgpt.txt`
-- `.curl-chatgpt-export-*.conf`
-
-
-## License
-
-MIT License.
-
-## Author
-
-Created by Antonio, Levysoft.
-
-Blog:
-
-```text
-https://www.levysoft.it/
-```
-
-GitHub:
-
-```text
-https://github.com/levysoft/
-```
+The project grew out of troubleshooting a large, incomplete ChatGPT data export download. It uses the standard `curl` resume feature and the Python standard library.
